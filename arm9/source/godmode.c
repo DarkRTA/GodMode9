@@ -26,6 +26,7 @@
 #include "i2c.h"
 #include "pxi.h"
 #include "language.h"
+#include "wasm3/gm9wasm.h"
 
 #ifndef N_PANES
 #define N_PANES 3
@@ -2910,7 +2911,7 @@ u32 GodMode(int entrypoint) {
             exit_mode = (switched || (pad_state & BUTTON_LEFT)) ? GODMODE_EXIT_POWEROFF : GODMODE_EXIT_REBOOT;
             break;
         } else if (pad_state & (BUTTON_HOME|BUTTON_POWER)) { // Home menu
-            const char* optionstr[8];
+            const char* optionstr[9];
             bool buttonhome = (pad_state & BUTTON_HOME);
             u32 n_opt = 0;
             int poweroff = ++n_opt;
@@ -2919,6 +2920,7 @@ u32 GodMode(int entrypoint) {
             int brick = (HID_ReadState() & BUTTON_R1) ? ++n_opt : 0;
             int titleman = ++n_opt;
             int scripts = ++n_opt;
+            int wasm_mods = ++n_opt;
             int payloads = ++n_opt;
             int more = ++n_opt;
             if (poweroff > 0) optionstr[poweroff - 1] = STR_POWEROFF_SYSTEM;
@@ -2927,6 +2929,7 @@ u32 GodMode(int entrypoint) {
             if (language > 0) optionstr[language - 1] = STR_LANGUAGE;
             if (brick > 0) optionstr[brick - 1] = STR_BRICK_MY_3DS;
             if (scripts > 0) optionstr[scripts - 1] = STR_SCRIPTS;
+            if (wasm_mods > 0) optionstr[wasm_mods - 1] = STR_WASM_MODS;
             if (payloads > 0) optionstr[payloads - 1] = STR_PAYLOADS;
             if (more > 0) optionstr[more - 1] = STR_MORE;
 
@@ -3004,6 +3007,16 @@ u32 GodMode(int entrypoint) {
                         ClearScreenF(true, true, COLOR_STD_BG);
                         break;
                     }
+                } else if (user_select == wasm_mods) {
+                    if (!CheckSupportDir(WASM_MOD_DIR)) {
+                        ShowPrompt(false, STR_WASM_MOD_DIRECTORY_NOT_FOUND, WASM_MOD_DIR);
+                    } else if (FileSelectorSupport(loadpath, STR_HOME_SCRIPTS_MENU_SELECT_WASM_MOD, WASM_MOD_DIR, "*.wasm")) {
+						ExecuteWasmModule(loadpath);
+                        GetDirContents(current_dir, current_path);
+                        ClearScreenF(true, true, COLOR_STD_BG);
+                        break;
+                    }
+					break;
                 } else if (user_select == payloads) {
                     if (!CheckSupportDir(PAYLOADS_DIR)) ShowPrompt(false, STR_PAYLOADS_DIRECTORY_NOT_FOUND, PAYLOADS_DIR);
                     else if (FileSelectorSupport(loadpath, STR_HOME_PAYLOADS_MENU_SELECT_PAYLOAD, PAYLOADS_DIR, "*.firm"))

@@ -5,6 +5,7 @@
 // scripts / payloads dir names
 #define LANGUAGES_DIR   "languages"
 #define SCRIPTS_DIR     "scripts"
+#define WASM_MOD_DIR    "wasm"
 #define PAYLOADS_DIR    "payloads"
 
 bool CheckSupportFile(const char* fname);
